@@ -1,4 +1,4 @@
-#include "absalg/template.hpp"
+#include "absalg/absalg.hpp"
 #include <cassert>
 #include <functional>
 #include <iostream>

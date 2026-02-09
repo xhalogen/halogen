@@ -1,3 +1,4 @@
 #pragma once
-#include "traits.hpp"
 #include "template.hpp"
+#include "traits.hpp"
+#include "structures.hpp"
