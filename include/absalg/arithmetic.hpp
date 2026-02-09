@@ -37,7 +37,7 @@ namespace halogen {
     struct r_div_traits<std::multiplies<T>, T> {
         static constexpr std::optional<T> of(T a, T b) {
             if (b == T(0)) return std::nullopt;
-            return a / a;
+            return a / b;
         };
     };
 
@@ -46,7 +46,7 @@ namespace halogen {
     struct l_div_traits<std::multiplies<T>, T> {
         static constexpr std::optional<T> of(T a, T b) {
             if (b == T(0)) return std::nullopt;
-            return b / a;
+            return a / b;
         };
     };
 
