@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - "-std=c++23"
+    - "-I${workspaceFolder}/include"
+    - "-I${workspaceFolder}/src"
+    - "-I${workspaceFolder}/external"
