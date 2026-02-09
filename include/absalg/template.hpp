@@ -42,7 +42,7 @@ namespace halogen {
         : std::true_type {};
 
     template<typename F, typename T>
-    inline constexpr bool invertible_v = identifiable<F, T>::value;
+    inline constexpr bool invertible_v = invertible<F, T>::value;
 
     template<typename F, typename T, typename = void>
     struct divisable : std::false_type {};
@@ -55,7 +55,7 @@ namespace halogen {
         : std::true_type {};
 
     template<typename F, typename T>
-    inline constexpr bool divisable_v = identifiable<F, T>::value;
+    inline constexpr bool divisable_v = divisable<F, T>::value;
 
     // These are just promises
     template<typename F, typename T>
