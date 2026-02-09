@@ -31,12 +31,18 @@ namespace halogen {
     struct identifiable<F, T, std::void_t<decltype(identity_traits<F, T>::value())>>
         : std::true_type {};
 
+    template<typename F, typename T>
+    inline constexpr bool identifiable_v = identifiable<F, T>::value;
+
     template<typename F, typename T, typename = void>
     struct invertible : std::false_type {};
 
     template<typename F, typename T>
     struct invertible<F, T, std::void_t<decltype(inverse_traits<F, T>::of(std::declval<T>()))>>
         : std::true_type {};
+
+    template<typename F, typename T>
+    inline constexpr bool invertible_v = identifiable<F, T>::value;
 
     template<typename F, typename T, typename = void>
     struct divisable : std::false_type {};
@@ -48,6 +54,9 @@ namespace halogen {
         >>
         : std::true_type {};
 
+    template<typename F, typename T>
+    inline constexpr bool divisable_v = identifiable<F, T>::value;
+
     // These are just promises
     template<typename F, typename T>
     struct associative {
@@ -55,15 +64,23 @@ namespace halogen {
     };
 
     template<typename F, typename T>
+    inline constexpr bool associative_v = identifiable<F, T>::value;
+
+    template<typename F, typename T>
     struct commutative {
         static constexpr bool value = false;
     };
+
+    template<typename F, typename T>
+    inline constexpr bool commutative_v = identifiable<F, T>::value;
 
     template<typename FA, typename FM, typename T>
     struct distributive {
         static constexpr bool value = false;
     };
-    //
+
+    template<typename FA, typename FM, typename T>
+    inline constexpr bool distributive_v = distributive<FA, FM, T>::value;
 
     // Magmas
 
@@ -72,27 +89,27 @@ namespace halogen {
         && std::convertible_to<std::invoke_result_t<F, T, T>, T>;
 
     template<typename F, typename T>
-    concept UnitalMagma = Magma<F, T> && identifiable<F, T>::value;
+    concept UnitalMagma = Magma<F, T> && identifiable_v<F, T>;
 
     template<typename F, typename T>
-    concept QuasiGroup = Magma<F, T> && divisable<F, T>::value;
+    concept QuasiGroup = Magma<F, T> && divisable_v<F, T>;
 
     template<typename F, typename T>
-    concept Loop = QuasiGroup<F, T> && identifiable<F, T>::value;
+    concept Loop = QuasiGroup<F, T> && identifiable_v<F, T>;
 
     template<typename F, typename T>
-    concept SemiGroup = Magma<F, T> && associative<F, T>::value;
+    concept SemiGroup = Magma<F, T> && associative_v<F, T>;
 
     template<typename F, typename T>
-    concept Monoid = SemiGroup<F, T> && identifiable<F, T>::value;
+    concept Monoid = SemiGroup<F, T> && identifiable_v<F, T>;
 
     template<typename F, typename T>
     concept Group =
-        (Monoid<F, T> && invertible<F, T>::value) ||
-        (Loop<F, T> && associative<F, T>::value);
+        (Monoid<F, T> && invertible_v<F, T>) ||
+        (Loop<F, T> && associative_v<F, T>);
 
     template<typename F, typename T>
-    concept CommutativeGroup = Group<F, T> && commutative<F, T>::value;
+    concept CommutativeGroup = Group<F, T> && commutative_v<F, T>;
 
     // Generic Rings
 
@@ -100,16 +117,16 @@ namespace halogen {
     concept GenericRing =
         CommutativeGroup<FA, T> &&
         SemiGroup<FM, T> &&
-        distributive<FA, FM, T>::value;
+        distributive_v<FA, FM, T>;
 
     template<typename FA, typename FM, typename T>
-    concept GenericCommutativeRing = GenericRing<FA, FM, T> && commutative<FM, T>::value;
+    concept GenericCommutativeRing = GenericRing<FA, FM, T> && commutative_v<FM, T>;
 
     template<typename FA, typename FM, typename T>
-    concept GenericUnitalRing = GenericRing<FA, FM, T> && identifiable<FM, T>::value;
+    concept GenericUnitalRing = GenericRing<FA, FM, T> && identifiable_v<FM, T>;
 
     template<typename FA, typename FM, typename T>
-    concept GenericDivisionRing = GenericUnitalRing<FA, FM, T> && invertible<FM, T>::value;
+    concept GenericDivisionRing = GenericUnitalRing<FA, FM, T> && invertible_v<FM, T>;
 
     template<typename FA, typename FM, typename T>
     concept GenericField = GenericDivisionRing<FA, FM, T> && GenericCommutativeRing<FA, FM, T>;

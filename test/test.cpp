@@ -19,7 +19,7 @@ int main (void) {
     double a = 42.42;
     auto add_id = identity_traits<std::plus<double>, double>::value();
     assert(a+add_id == a);
-    auto add_inv = inverse_traits<std::plus<double>, double>::of(a).value();
+    auto add_inv = inverse_traits<std::plus<double>, double>::of(a);
     assert(a+add_inv == add_id);
     auto mul_id = identity_traits<std::multiplies<double>, double>::value();
     assert(a*mul_id == a);

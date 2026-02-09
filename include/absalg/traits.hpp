@@ -20,7 +20,7 @@ namespace halogen {
     template<typename T>
     requires std::is_arithmetic_v<T>
     struct inverse_traits<std::plus<T>, T> {
-        static constexpr std::optional<T> of(T a) {
+        static constexpr T of(T a) {
             return -a;
         };
     };
