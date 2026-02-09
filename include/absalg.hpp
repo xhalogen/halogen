@@ -2,12 +2,28 @@
 #include <concepts>
 #include <type_traits>
 #include <functional>
+#include <optional>
 
 namespace halogen {
-    template<typename F, typename T> struct identity_traits;
-    template<typename F, typename T> struct inverse_traits;
-    template<typename F, typename T> struct r_div_traits;
-    template<typename F, typename T> struct l_div_traits;
+    template<typename F, typename T>
+    struct identity_traits {
+        static constexpr std::optional<T> value() { return std::nullopt; };
+    };
+
+    template<typename F, typename T>
+    struct inverse_traits {
+        static constexpr std::optional<T> of(T a) { return std::nullopt; };
+    };
+
+    template<typename F, typename T>
+    struct r_div_traits {
+        static constexpr std::optional<T> of(T a, T b) { return std::nullopt; };
+    };
+
+    template<typename F, typename T>
+    struct l_div_traits {
+        static constexpr std::optional<T> of(T a, T b) { return std::nullopt; };
+    };
 
     template<typename F, typename T, typename = void>
     struct identifiable : std::false_type {};
