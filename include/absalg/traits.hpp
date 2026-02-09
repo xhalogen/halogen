@@ -1,4 +1,6 @@
-#include "absalg.hpp"
+#pragma once
+#include "template.hpp"
+#include <optional>
 #include <functional>
 #include <type_traits>
 
@@ -6,13 +8,13 @@ namespace halogen {
     template<typename T>
     requires std::is_arithmetic_v<T>
     struct identity_traits<std::plus<T>, T> {
-        static constexpr std::optional<T> value() { return T(0); };
+        static constexpr T value() { return T(0); };
     };
 
     template<typename T>
     requires std::is_arithmetic_v<T>
     struct identity_traits<std::multiplies<T>, T> {
-        static constexpr std::optional<T> value() { return T(1); };
+        static constexpr T value() { return T(1); };
     };
 
     template<typename T>
