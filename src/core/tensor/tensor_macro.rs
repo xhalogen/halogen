@@ -10,7 +10,7 @@ macro_rules! densetensor {
         {
             let data = vec![$($x),*];
             let d0 = data.len();
-            DenseTensor::from_vec([len], data).unwrap()
+            DenseTensor::from_vec([d0], data).unwrap()
         }
     };
     (2; [$([$($x:expr),* $(,)?]),* $(,)?]) => {
@@ -48,6 +48,19 @@ macro_rules! densetensor {
                 .flatten()
                 .collect();
             DenseTensor::from_vec([d0, d1, d2, d3], data).unwrap()
+        }
+    };
+    ([$($x:expr),* $(,)?]) => {
+        {
+            let data = vec![$($x),*];
+            let d0 = data.len();
+            DenseTensor::from_vec([d0], data).unwrap()
+        }
+    };
+    ($x:expr) => {
+        {
+            let data = vec![$x];
+            DenseTensor::from_vec([], data).unwrap()
         }
     };
 }
