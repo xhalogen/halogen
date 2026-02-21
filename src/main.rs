@@ -1,4 +1,3 @@
-use halogen::core::ops::elementwise::*;
 use halogen::core::tensor::*;
 
 fn main() {
