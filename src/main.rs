@@ -13,4 +13,5 @@ fn main() {
     for i in c.as_slice() {
         println!("{}", i);
     }
+    // x = einsum!("i,i->i", a, b);
 }
