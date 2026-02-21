@@ -2,5 +2,11 @@
 name = "xhalogen"
 version = "0.1.0"
 edition = "2024"
+description = "tensor library for rust"
+license = "MIT"
+repository = "https://github.com/xhalogen/halogen"
 
 [dependencies]
+
+[dev-dependencies]
+cargo-husky = {version = "1", features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"]}
