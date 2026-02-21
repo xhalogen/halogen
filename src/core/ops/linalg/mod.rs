@@ -1,1 +1,2 @@
-// TODO: einsum
+mod einsum;
+pub use einsum::*;
