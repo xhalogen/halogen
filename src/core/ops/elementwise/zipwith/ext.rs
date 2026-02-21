@@ -25,7 +25,7 @@ pub trait TensorZipwithExt<const N: usize>: Tensor<N> {
         C: Tensor<N>,
         Self::Elem: Copy,
         B::Elem: Copy,
-        F: FnMut(Self::Elem, B::Elem) -> C::Elem,
+        F: FnMut(Self::Elem, B::Elem) -> Option<C::Elem>,
     {
         zipwith::<Self, B, C, F, N>(self, b, f)
     }

@@ -12,7 +12,7 @@ where
     C: Tensor<N>,
     A::Elem: Copy,
     B::Elem: Copy,
-    F: FnMut(A::Elem, B::Elem) -> C::Elem,
+    F: FnMut(A::Elem, B::Elem) -> Option<C::Elem>,
 {
     if a.shape() != b.shape() {
         return None;
@@ -21,7 +21,7 @@ where
     let b_slice = b.as_slice();
     let mut ret = Vec::with_capacity(a_slice.len());
     for i in 0..a_slice.len() {
-        ret.push(f(a_slice[i], b_slice[i]));
+        ret.push(f(a_slice[i], b_slice[i])?);
     }
     C::from_vec(*a.shape(), ret)
 }

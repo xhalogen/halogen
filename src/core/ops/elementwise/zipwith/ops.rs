@@ -1,5 +1,5 @@
 use super::*;
-use crate::core::tensor::Tensor;
+use crate::core::tensor::{DenseTensor, Tensor};
 use std::ops::*;
 
 macro_rules! def_zipwith_ops {
@@ -12,7 +12,7 @@ macro_rules! def_zipwith_ops {
             A::Elem: Copy + $trait<B::Elem>,
             B::Elem: Copy,
         {
-            zipwith::<A, B, C, _, N>(a, b, |x, y| x.$op(y))
+            zipwith::<A, B, C, _, N>(a, b, |x, y| Some(x.$op(y)))
         }
     };
 }
@@ -27,3 +27,28 @@ def_zipwith_ops!(bitor, BitOr);
 def_zipwith_ops!(bitxor, BitXor);
 def_zipwith_ops!(shl, Shl);
 def_zipwith_ops!(shr, Shr);
+
+macro_rules! def_zipwith_densetensor {
+    ($op:ident, $trait:tt) => {
+        impl<T, const N: usize> $trait for DenseTensor<T, N>
+        where
+            T: Copy + $trait<Output = T>,
+        {
+            type Output = DenseTensor<T, N>;
+            fn $op(self, rhs: Self) -> Self {
+                $op(&self, &rhs).unwrap()
+            }
+        }
+    };
+}
+
+def_zipwith_densetensor!(add, Add);
+def_zipwith_densetensor!(sub, Sub);
+def_zipwith_densetensor!(mul, Mul);
+def_zipwith_densetensor!(div, Div);
+def_zipwith_densetensor!(rem, Rem);
+def_zipwith_densetensor!(bitand, BitAnd);
+def_zipwith_densetensor!(bitor, BitOr);
+def_zipwith_densetensor!(bitxor, BitXor);
+def_zipwith_densetensor!(shl, Shl);
+def_zipwith_densetensor!(shr, Shr);
