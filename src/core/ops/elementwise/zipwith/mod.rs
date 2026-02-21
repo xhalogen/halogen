@@ -1,18 +1,9 @@
 use crate::core::tensor::Tensor;
 
-pub trait TensorZipwithExt<const N: usize>: Tensor<N> {
-    fn zipwith<B, C, F>(&self, b: &B, f: F) -> Option<C>
-    where
-        Self: Sized,
-        B: Tensor<N>,
-        C: Tensor<N>,
-        Self::Elem: Copy,
-        B::Elem: Copy,
-        F: FnMut(Self::Elem, B::Elem) -> C::Elem,
-    {
-        zipwith::<Self, B, C, F, N>(self, b, f)
-    }
-}
+mod ext;
+mod ops;
+pub use ext::*;
+pub use ops::*;
 
 pub fn zipwith<A, B, C, F, const N: usize>(a: &A, b: &B, mut f: F) -> Option<C>
 where
@@ -34,5 +25,3 @@ where
     }
     C::from_vec(*a.shape(), ret)
 }
-
-impl<T, const N: usize> TensorZipwithExt<N> for T where T: Tensor<N> {}

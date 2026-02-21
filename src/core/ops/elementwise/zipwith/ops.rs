@@ -2,7 +2,7 @@ use super::*;
 use crate::core::tensor::Tensor;
 use std::ops::*;
 
-macro_rules! impl_zipwith {
+macro_rules! def_zipwith_ops {
     ($op:ident, $trait:tt) => {
         pub fn $op<A, B, C, const N: usize>(a: &A, b: &B) -> Option<C>
         where
@@ -17,13 +17,13 @@ macro_rules! impl_zipwith {
     };
 }
 
-impl_zipwith!(add, Add);
-impl_zipwith!(sub, Sub);
-impl_zipwith!(mul, Mul);
-impl_zipwith!(div, Div);
-impl_zipwith!(rem, Rem);
-impl_zipwith!(bitand, BitAnd);
-impl_zipwith!(bitor, BitOr);
-impl_zipwith!(bitxor, BitXor);
-impl_zipwith!(shl, Shl);
-impl_zipwith!(shr, Shr);
+def_zipwith_ops!(add, Add);
+def_zipwith_ops!(sub, Sub);
+def_zipwith_ops!(mul, Mul);
+def_zipwith_ops!(div, Div);
+def_zipwith_ops!(rem, Rem);
+def_zipwith_ops!(bitand, BitAnd);
+def_zipwith_ops!(bitor, BitOr);
+def_zipwith_ops!(bitxor, BitXor);
+def_zipwith_ops!(shl, Shl);
+def_zipwith_ops!(shr, Shr);

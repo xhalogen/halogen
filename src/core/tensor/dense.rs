@@ -8,8 +8,7 @@ pub struct DenseTensor<T, const N: usize> {
 impl<T, const N: usize> DenseTensor<T, N> {
     fn offset_of(&self, idx: [usize; N]) -> Option<usize> {
         let mut offset = 0usize;
-        for i in 0..N {
-            let idx_size = idx[i];
+        for (i, &idx_size) in idx.iter().enumerate() {
             let shape_size = self.shape[i];
             if shape_size <= idx_size {
                 return None;

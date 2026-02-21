@@ -2,7 +2,7 @@ use super::*;
 use crate::core::tensor::Tensor;
 use std::ops::*;
 
-macro_rules! impl_map {
+macro_rules! def_map_ops {
     ($op:ident, $trait:tt) => {
         pub fn $op<A, C, const N: usize>(a: &A) -> Option<C>
         where
@@ -15,5 +15,5 @@ macro_rules! impl_map {
     };
 }
 
-impl_map!(neg, Neg);
-impl_map!(not, Not);
+def_map_ops!(neg, Neg);
+def_map_ops!(not, Not);

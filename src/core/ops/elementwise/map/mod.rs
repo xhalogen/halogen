@@ -1,16 +1,9 @@
 use crate::core::tensor::Tensor;
 
-pub trait TensorMapExt<const N: usize>: Tensor<N> {
-    fn map<C, F>(&self, f: F) -> Option<C>
-    where
-        Self: Sized,
-        C: Tensor<N>,
-        Self::Elem: Copy,
-        F: FnMut(Self::Elem) -> C::Elem,
-    {
-        map::<Self, C, F, N>(self, f)
-    }
-}
+mod ext;
+mod ops;
+pub use ext::*;
+pub use ops::*;
 
 pub fn map<A, C, F, const N: usize>(a: &A, mut f: F) -> Option<C>
 where
@@ -26,5 +19,3 @@ where
     }
     C::from_vec(*a.shape(), ret)
 }
-
-impl<T, const N: usize> TensorMapExt<N> for T where T: Tensor<N> {}
