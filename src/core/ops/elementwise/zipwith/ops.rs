@@ -4,15 +4,15 @@ use std::ops::*;
 
 macro_rules! def_zipwith_ops {
     ($op:ident, $trait:tt) => {
-        pub fn $op<A, B, C, const N: usize>(a: &A, b: &B) -> Option<C>
+        pub fn $op<A, B, C>(a: &A, b: &B) -> Option<C>
         where
-            A: Tensor<N>,
-            B: Tensor<N>,
-            C: Tensor<N, Elem = <A::Elem as $trait<B::Elem>>::Output>,
+            A: Tensor,
+            B: Tensor,
+            C: Tensor<Elem = <A::Elem as $trait<B::Elem>>::Output>,
             A::Elem: Copy + $trait<B::Elem>,
             B::Elem: Copy,
         {
-            zipwith::<A, B, C, _, N>(a, b, |x, y| Some(x.$op(y)))
+            zipwith::<A, B, C, _>(a, b, |x, y| Some(x.$op(y)))
         }
     };
 }
@@ -30,11 +30,11 @@ def_zipwith_ops!(shr, Shr);
 
 macro_rules! def_zipwith_densetensor {
     ($op:ident, $trait:tt) => {
-        impl<T, const N: usize> $trait for DenseTensor<T, N>
+        impl<T> $trait for DenseTensor<T>
         where
             T: Copy + $trait<Output = T>,
         {
-            type Output = DenseTensor<T, N>;
+            type Output = DenseTensor<T>;
             fn $op(self, rhs: Self) -> Self {
                 $op(&self, &rhs).unwrap()
             }

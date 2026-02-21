@@ -7,8 +7,8 @@ macro_rules! def_zipwith_ext {
         fn $op<B, C>(&self, b: &B) -> Option<C>
         where
             Self: Sized,
-            B: Tensor<N>,
-            C: Tensor<N, Elem = <Self::Elem as $trait<B::Elem>>::Output>,
+            B: Tensor,
+            C: Tensor<Elem = <Self::Elem as $trait<B::Elem>>::Output>,
             Self::Elem: Copy + $trait<B::Elem>,
             B::Elem: Copy,
         {
@@ -17,17 +17,17 @@ macro_rules! def_zipwith_ext {
     };
 }
 
-pub trait TensorZipwithExt<const N: usize>: Tensor<N> {
+pub trait TensorZipwithExt: Tensor {
     fn zipwith<B, C, F>(&self, b: &B, f: F) -> Option<C>
     where
         Self: Sized,
-        B: Tensor<N>,
-        C: Tensor<N>,
+        B: Tensor,
+        C: Tensor,
         Self::Elem: Copy,
         B::Elem: Copy,
         F: FnMut(Self::Elem, B::Elem) -> Option<C::Elem>,
     {
-        zipwith::<Self, B, C, F, N>(self, b, f)
+        zipwith::<Self, B, C, F>(self, b, f)
     }
 
     def_zipwith_ext!(add, Add);
@@ -41,4 +41,4 @@ pub trait TensorZipwithExt<const N: usize>: Tensor<N> {
     def_zipwith_ext!(shl, Shl);
     def_zipwith_ext!(shr, Shr);
 }
-impl<T, const N: usize> TensorZipwithExt<N> for T where T: Tensor<N> {}
+impl<T> TensorZipwithExt for T where T: Tensor {}

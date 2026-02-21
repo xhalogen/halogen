@@ -5,11 +5,11 @@ mod ops;
 pub use ext::*;
 pub use ops::*;
 
-pub fn zipwith<A, B, C, F, const N: usize>(a: &A, b: &B, mut f: F) -> Option<C>
+pub fn zipwith<A, B, C, F>(a: &A, b: &B, mut f: F) -> Option<C>
 where
-    A: Tensor<N>,
-    B: Tensor<N>,
-    C: Tensor<N>,
+    A: Tensor,
+    B: Tensor,
+    C: Tensor,
     A::Elem: Copy,
     B::Elem: Copy,
     F: FnMut(A::Elem, B::Elem) -> Option<C::Elem>,
@@ -23,5 +23,5 @@ where
     for i in 0..a_slice.len() {
         ret.push(f(a_slice[i], b_slice[i])?);
     }
-    C::from_vec(*a.shape(), ret)
+    C::from_vec(a.shape(), ret)
 }

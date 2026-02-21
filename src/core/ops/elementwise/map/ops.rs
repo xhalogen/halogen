@@ -4,13 +4,13 @@ use std::ops::*;
 
 macro_rules! def_map_ops {
     ($op:ident, $trait:tt) => {
-        pub fn $op<A, C, const N: usize>(a: &A) -> Option<C>
+        pub fn $op<A, C>(a: &A) -> Option<C>
         where
-            A: Tensor<N>,
-            C: Tensor<N, Elem = <A::Elem as $trait>::Output>,
+            A: Tensor,
+            C: Tensor<Elem = <A::Elem as $trait>::Output>,
             A::Elem: Copy + $trait,
         {
-            map::<A, C, _, N>(a, |x| x.$op())
+            map::<A, C, _>(a, |x| x.$op())
         }
     };
 }

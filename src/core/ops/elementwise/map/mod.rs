@@ -5,10 +5,10 @@ mod ops;
 pub use ext::*;
 pub use ops::*;
 
-pub fn map<A, C, F, const N: usize>(a: &A, mut f: F) -> Option<C>
+pub fn map<A, C, F>(a: &A, mut f: F) -> Option<C>
 where
-    A: Tensor<N>,
-    C: Tensor<N>,
+    A: Tensor,
+    C: Tensor,
     A::Elem: Copy,
     F: FnMut(A::Elem) -> C::Elem,
 {
@@ -17,5 +17,5 @@ where
     for &x in a_slice {
         ret.push(f(x));
     }
-    C::from_vec(*a.shape(), ret)
+    C::from_vec(a.shape(), ret)
 }

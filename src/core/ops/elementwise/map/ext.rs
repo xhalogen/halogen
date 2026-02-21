@@ -7,7 +7,7 @@ macro_rules! def_map_ext {
         fn $op<C>(&self) -> Option<C>
         where
             Self: Sized,
-            C: Tensor<N, Elem = <Self::Elem as $trait>::Output>,
+            C: Tensor<Elem = <Self::Elem as $trait>::Output>,
             Self::Elem: Copy + $trait,
         {
             $op(self)
@@ -15,17 +15,17 @@ macro_rules! def_map_ext {
     };
 }
 
-impl<T, const N: usize> TensorMapExt<N> for T where T: Tensor<N> {}
+impl<T> TensorMapExt for T where T: Tensor {}
 
-pub trait TensorMapExt<const N: usize>: Tensor<N> {
+pub trait TensorMapExt: Tensor {
     fn map<C, F>(&self, f: F) -> Option<C>
     where
         Self: Sized,
-        C: Tensor<N>,
+        C: Tensor,
         Self::Elem: Copy,
         F: FnMut(Self::Elem) -> C::Elem,
     {
-        map::<Self, C, F, N>(self, f)
+        map::<Self, C, F>(self, f)
     }
 
     def_map_ext!(neg, Neg);
