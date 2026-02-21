@@ -14,5 +14,7 @@ pub trait Tensor<const N: usize> {
     }
 }
 
-pub mod dense;
+mod dense;
 pub use dense::*;
+
+mod tensor_macro;
