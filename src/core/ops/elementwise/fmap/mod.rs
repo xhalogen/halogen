@@ -5,7 +5,7 @@ mod ops;
 pub use ext::*;
 pub use ops::*;
 
-pub fn map<A, C, F>(a: &A, mut f: F) -> Option<C>
+pub fn fmap<A, C, F>(a: &A, mut f: F) -> Option<C>
 where
     A: Tensor,
     C: Tensor,

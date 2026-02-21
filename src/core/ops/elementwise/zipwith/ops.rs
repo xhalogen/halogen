@@ -12,7 +12,7 @@ macro_rules! def_zipwith_ops {
             A::Elem: Copy + $trait<B::Elem>,
             B::Elem: Copy,
         {
-            zipwith::<A, B, C, _>(a, b, |x, y| Some(x.$op(y)))
+            zipwith::<A, B, C, _>(a, b, |x, y| x.$op(y))
         }
     };
 }

@@ -2,7 +2,7 @@ use super::*;
 use crate::core::tensor::Tensor;
 use std::ops::*;
 
-macro_rules! def_map_ext {
+macro_rules! def_fmap_ext {
     ($op:ident, $trait:tt) => {
         fn $op<C>(&self) -> Option<C>
         where
@@ -15,19 +15,19 @@ macro_rules! def_map_ext {
     };
 }
 
-impl<T> TensorMapExt for T where T: Tensor {}
+impl<T> TensorFmapExt for T where T: Tensor {}
 
-pub trait TensorMapExt: Tensor {
-    fn map<C, F>(&self, f: F) -> Option<C>
+pub trait TensorFmapExt: Tensor {
+    fn fmap<C, F>(&self, f: F) -> Option<C>
     where
         Self: Sized,
         C: Tensor,
         Self::Elem: Copy,
         F: FnMut(Self::Elem) -> C::Elem,
     {
-        map::<Self, C, F>(self, f)
+        fmap::<Self, C, F>(self, f)
     }
 
-    def_map_ext!(neg, Neg);
-    def_map_ext!(not, Not);
+    def_fmap_ext!(neg, Neg);
+    def_fmap_ext!(not, Not);
 }
