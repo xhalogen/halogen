@@ -27,6 +27,8 @@
             rustfmt
             clippy
             rust-analyzer
+            cargo-dist
+            cargo-release
           ];
         };
       }
