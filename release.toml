@@ -1,4 +1,7 @@
+shared-version = true
+dependent-version = "upgrade"
 publish = true
 push = true
 tag = true
+tag-prefix = "v"
 pre-release-commit-message = "release: v{{version}}"
