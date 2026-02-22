@@ -1,3 +1,7 @@
+mod dense;
+mod into;
+mod scarlar;
+
 pub trait Tensor {
     type Elem;
     fn rank(&self) -> usize;
@@ -12,7 +16,5 @@ pub trait Tensor {
     }
 }
 
-mod dense;
 pub use dense::*;
-
-mod tensor_macro;
+pub use scarlar::*;

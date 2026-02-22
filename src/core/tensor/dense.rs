@@ -1,8 +1,8 @@
 use super::Tensor;
 
 pub struct DenseTensor<T> {
-    shape: Vec<usize>,
-    data: Vec<T>,
+    pub shape: Vec<usize>,
+    pub data: Vec<T>,
 }
 
 impl<T> DenseTensor<T> {
