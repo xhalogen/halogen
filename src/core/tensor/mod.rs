@@ -1,6 +1,6 @@
 mod dense;
 mod into;
-mod scarlar;
+mod scalar;
 
 pub trait Tensor {
     type Elem;
@@ -17,4 +17,4 @@ pub trait Tensor {
 }
 
 pub use dense::*;
-pub use scarlar::*;
+pub use scalar::*;
