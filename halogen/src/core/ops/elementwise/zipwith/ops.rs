@@ -1,10 +1,11 @@
 use super::*;
+use crate::core::TensorError;
 use crate::core::tensor::{DenseTensor, Tensor};
 use std::ops::*;
 
 macro_rules! def_zipwith_ops {
     ($op:ident, $trait:tt) => {
-        pub fn $op<A, B, C>(a: &A, b: &B) -> Option<C>
+        pub fn $op<A, B, C>(a: &A, b: &B) -> Result<C, TensorError>
         where
             A: Tensor,
             B: Tensor,
@@ -36,7 +37,7 @@ macro_rules! def_zipwith_densetensor {
         {
             type Output = DenseTensor<T>;
             fn $op(self, rhs: Self) -> Self {
-                $op(&self, &rhs).unwrap()
+                $op(&self, &rhs).unwrap_or_else(|err| panic!("{} failed: {err}", stringify!($op)))
             }
         }
     };

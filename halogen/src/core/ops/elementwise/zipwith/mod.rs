@@ -1,3 +1,4 @@
+use crate::core::TensorError;
 use crate::core::tensor::Tensor;
 
 mod ext;
@@ -5,7 +6,7 @@ mod ops;
 pub use ext::*;
 pub use ops::*;
 
-pub fn zipwith<A, B, C, F>(a: &A, b: &B, mut f: F) -> Option<C>
+pub fn zipwith<A, B, C, F>(a: &A, b: &B, mut f: F) -> Result<C, TensorError>
 where
     A: Tensor,
     B: Tensor,
@@ -15,7 +16,10 @@ where
     F: FnMut(A::Elem, B::Elem) -> C::Elem,
 {
     if a.shape() != b.shape() {
-        return None;
+        return Err(TensorError::ShapeMismatch {
+            left: a.shape().to_vec(),
+            right: b.shape().to_vec(),
+        });
     }
     let a_slice = a.as_slice();
     let b_slice = b.as_slice();

@@ -8,6 +8,7 @@ repository = "https://github.com/xhalogen/halogen"
 
 [dependencies]
 halogen-macros = { version = "0.0.0", path = "../halogen-macros" }
+thiserror = "2"
 
 [dev-dependencies]
 cargo-husky = {version = "1", features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"]}

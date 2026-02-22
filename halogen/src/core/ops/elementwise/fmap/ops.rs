@@ -1,10 +1,11 @@
 use super::*;
+use crate::core::TensorError;
 use crate::core::tensor::Tensor;
 use std::ops::*;
 
 macro_rules! def_fmap_ops {
     ($op:ident, $trait:tt) => {
-        pub fn $op<A, C>(a: &A) -> Option<C>
+        pub fn $op<A, C>(a: &A) -> Result<C, TensorError>
         where
             A: Tensor,
             C: Tensor<Elem = <A::Elem as $trait>::Output>,

@@ -1,10 +1,11 @@
 use super::*;
+use crate::core::TensorError;
 use crate::core::tensor::Tensor;
 use std::ops::*;
 
 macro_rules! def_zipwith_ext {
     ($op:ident, $trait:tt) => {
-        fn $op<B, C>(&self, b: &B) -> Option<C>
+        fn $op<B, C>(&self, b: &B) -> Result<C, TensorError>
         where
             Self: Sized,
             B: Tensor,
@@ -18,7 +19,7 @@ macro_rules! def_zipwith_ext {
 }
 
 pub trait TensorZipwithExt: Tensor {
-    fn zipwith<B, C, F>(&self, b: &B, f: F) -> Option<C>
+    fn zipwith<B, C, F>(&self, b: &B, f: F) -> Result<C, TensorError>
     where
         Self: Sized,
         B: Tensor,

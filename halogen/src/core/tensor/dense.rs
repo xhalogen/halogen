@@ -1,3 +1,5 @@
+use crate::core::TensorError;
+
 use super::Tensor;
 
 pub struct DenseTensor<T> {
@@ -6,28 +8,42 @@ pub struct DenseTensor<T> {
 }
 
 impl<T> DenseTensor<T> {
-    fn offset_of(&self, idx: &[usize]) -> Option<usize> {
+    fn offset_of(&self, idx: &[usize]) -> Result<usize, TensorError> {
+        if idx.len() != self.shape.len() {
+            return Err(TensorError::IndexOutOfBounds {
+                idx: idx.to_vec(),
+                shape: self.shape.clone(),
+            });
+        }
+
         let mut offset = 0usize;
         for (i, &idx_size) in idx.iter().enumerate() {
             let shape_size = self.shape[i];
             if shape_size <= idx_size {
-                return None;
+                return Err(TensorError::IndexOutOfBounds {
+                    idx: idx.to_vec(),
+                    shape: self.shape.clone(),
+                });
             }
             offset = offset * shape_size + idx_size;
         }
-        Some(offset)
+        Ok(offset)
     }
 }
 
 impl<T> Tensor for DenseTensor<T> {
     type Elem = T;
 
-    fn from_vec(shape: &[usize], data: Vec<Self::Elem>) -> Option<Self> {
+    fn from_vec(shape: &[usize], data: Vec<Self::Elem>) -> Result<Self, TensorError> {
         let shape_size: usize = shape.iter().product();
         if shape_size != data.len() {
-            return None;
+            return Err(TensorError::DataLengthMismatch {
+                shape: shape.to_vec(),
+                expected: shape_size,
+                provided: data.len(),
+            });
         }
-        Some(Self {
+        Ok(Self {
             shape: shape.to_vec(),
             data,
         })
@@ -45,8 +61,15 @@ impl<T> Tensor for DenseTensor<T> {
         &self.data
     }
 
-    fn get(&self, idx: &[usize]) -> Option<&Self::Elem> {
-        let idx = self.offset_of(idx)?;
-        self.data.get(idx)
+    fn get(&self, idx: &[usize]) -> Result<&Self::Elem, TensorError> {
+        let offset = self.offset_of(idx)?;
+        self.data.get(offset).ok_or_else(|| {
+            let expected = self.shape.iter().product();
+            TensorError::DataLengthMismatch {
+                shape: self.shape.clone(),
+                expected,
+                provided: self.data.len(),
+            }
+        })
     }
 }
