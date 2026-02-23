@@ -21,6 +21,7 @@ dependencies = [
 name = "halogen-macros"
 version = "0.0.0"
 dependencies = [
+ "cargo-husky",
  "proc-macro2",
  "quote",
  "syn",
