@@ -16,6 +16,9 @@ pub trait Tensor {
     fn at(&self, idx: &[usize]) -> &Self::Elem {
         self.get(idx).unwrap_or_else(|err| panic!("{err}"))
     }
+    fn reshape(&self, shape: &[usize]) -> Result<Self, TensorError>
+    where
+        Self: Sized;
 }
 
 pub use dense::*;

@@ -31,8 +31,16 @@ impl<T> DenseTensor<T> {
     }
 }
 
-impl<T> Tensor for DenseTensor<T> {
+impl<T: Clone> Tensor for DenseTensor<T> {
     type Elem = T;
+
+    fn rank(&self) -> usize {
+        self.shape.len()
+    }
+
+    fn as_slice(&self) -> &[T] {
+        &self.data
+    }
 
     fn from_vec(shape: &[usize], data: Vec<Self::Elem>) -> Result<Self, TensorError> {
         let shape_size: usize = shape.iter().product();
@@ -49,16 +57,8 @@ impl<T> Tensor for DenseTensor<T> {
         })
     }
 
-    fn rank(&self) -> usize {
-        self.shape.len()
-    }
-
     fn shape(&self) -> &[usize] {
         &self.shape
-    }
-
-    fn as_slice(&self) -> &[T] {
-        &self.data
     }
 
     fn get(&self, idx: &[usize]) -> Result<&Self::Elem, TensorError> {
@@ -70,6 +70,22 @@ impl<T> Tensor for DenseTensor<T> {
                 expected,
                 provided: self.data.len(),
             }
+        })
+    }
+
+    fn reshape(&self, shape: &[usize]) -> Result<Self, TensorError> {
+        let shape_size: usize = shape.iter().product();
+        if shape_size != self.data.len() {
+            return Err(TensorError::DataLengthMismatch {
+                shape: shape.to_vec(),
+                expected: self.data.len(),
+                provided: shape_size,
+            });
+        }
+
+        Ok(Self {
+            shape: shape.to_vec(),
+            data: self.data.clone(),
         })
     }
 }
@@ -112,5 +128,35 @@ mod tests {
         let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
         assert!(t.get(&[0]).is_err());
         assert!(t.get(&[0, 0, 0]).is_err());
+    }
+
+    #[test]
+    fn reshape_returns_new_tensor_with_new_shape() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let reshaped = t.reshape(&[3, 2]).unwrap();
+        assert_eq!(reshaped.shape(), &[3, 2]);
+        assert_eq!(reshaped.as_slice(), &[1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn reshape_to_1d() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let reshaped = t.reshape(&[6]).unwrap();
+        assert_eq!(reshaped.shape(), &[6]);
+        assert_eq!(reshaped.as_slice(), &[1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn reshape_does_not_mutate_original() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let _ = t.reshape(&[3, 2]).unwrap();
+        assert_eq!(t.shape(), &[2, 3]);
+    }
+
+    #[test]
+    fn reshape_rejects_size_mismatch() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        assert!(t.reshape(&[2, 2]).is_err());
+        assert!(t.reshape(&[3, 3]).is_err());
     }
 }
