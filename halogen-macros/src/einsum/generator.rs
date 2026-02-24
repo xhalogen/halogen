@@ -73,7 +73,7 @@ pub fn def_outputvalues(
     }
     ret.push(quote! {
         let __halogen_einsum_output_data_len: usize = __halogen_einsum_output_shape.iter().product();
-        let mut __halogen_einsum_output_data = ::std::vec![0; __halogen_einsum_output_data_len];
+        let mut __halogen_einsum_output_data = ::std::vec![::core::default::Default::default(); __halogen_einsum_output_data_len];
     });
 
     let mut idx_prc = HashMap::<String, usize>::new();
@@ -168,9 +168,17 @@ pub fn gen_run_einsum(
     quotes = quote! {
         let mut __halogen_einsum_iter_index: usize = 0;
         #quotes
-        let __halogen_einsum_output_tensor = crate::core::tensor::Tensor::from_vec(
+        fn __halogen_einsum_make_output<__T: crate::core::tensor::Tensor>(
+            _: &__T,
+            shape: &[usize],
+            data: ::std::vec::Vec<__T::Elem>,
+        ) -> ::std::result::Result<__T, crate::core::TensorError> {
+            __T::from_vec(shape, data)
+        }
+        let __halogen_einsum_output_tensor = __halogen_einsum_make_output(
+            __halogen_einsum_tensor0,
             &__halogen_einsum_output_shape,
-            __halogen_einsum_output_data
+            __halogen_einsum_output_data,
         );
     };
     Ok(quotes)
