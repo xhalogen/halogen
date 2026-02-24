@@ -16,21 +16,15 @@ impl Parse for EinsumInput {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut tokens = TokenStream2::new();
         while !input.is_empty() && !input.peek(Token![=>]) {
-            tokens.extend(once(
-                input
-                    .parse::<TokenTree2>()
-                    .expect("einsum/parser: something went wrong while extending token"),
-            ));
+            tokens.extend(once(input.parse::<TokenTree2>()?));
         }
-        let expr = parse2(preprocess_einsum(tokens))
-            .expect("einsum/parser: something went wrong while preprocessing expression");
+        let expr = parse2(preprocess_einsum(tokens))?;
 
         input.parse::<Token![=>]>()?;
         let index;
         bracketed!(index in input);
         let output = index
-            .parse_terminated(Ident::parse, Token![,])
-            .expect("einsum/parser: expected ,")
+            .parse_terminated(Ident::parse, Token![,])?
             .into_iter()
             .collect();
 

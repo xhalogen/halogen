@@ -3,7 +3,7 @@ use proc_macro2::Ident as Ident2;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use std::collections::HashMap;
-use syn::Ident;
+use syn::{Error, Ident, Result};
 
 pub fn def_tensorvalues(tensors: &[TensorValue]) -> TokenStream2 {
     let ret = tensors.iter().enumerate().map(|(i, t)| {
@@ -59,14 +59,14 @@ pub fn def_outputvalues(
     indices: &TensorIndices,
     exprresult: &[Ident],
     idx_rep: &HashMap<String, (Ident2, usize)>,
-) -> TokenStream2 {
+) -> Result<TokenStream2> {
     let mut ret = Vec::new();
     ret.push(quote! {
         let mut __halogen_einsum_output_shape: ::std::vec::Vec<usize> = ::std::vec::Vec::new();
     });
     for idx in exprresult {
-        let idxlen =
-            get_rep_size(idx, idx_rep).expect("expression must contain every output index");
+        let idxlen = get_rep_size(idx, idx_rep)
+            .ok_or_else(|| Error::new_spanned(idx, "expression must contain every output index"))?;
         ret.push(quote! {
             __halogen_einsum_output_shape.push(#idxlen);
         });
@@ -136,14 +136,14 @@ pub fn def_outputvalues(
         //     println!("----{} {}",#i,#strd);
         // });
     }
-    quote! { #(#ret)* }
+    Ok(quote! { #(#ret)* })
 }
 
 pub fn gen_run_einsum(
     indices: &TensorIndices,
     einsum_expr: TokenStream2,
     idx_rep: &HashMap<String, (Ident2, usize)>,
-) -> TokenStream2 {
+) -> Result<TokenStream2> {
     // println!("tmp");
     let mut quotes = quote! {
         // println!("iteridx: {__halogen_einsum_iter_index}");
@@ -151,9 +151,9 @@ pub fn gen_run_einsum(
     };
     for (i, idx) in indices.input.iter().enumerate().rev() {
         let idxval = format_ident!("__halogen_einsum_iter_in{i}");
-        let idxlen = get_rep_size(idx, idx_rep).expect(
-            "gen_run_einsum: something went wrong I will write err msg later (input idx_rep)",
-        );
+        let idxlen = get_rep_size(idx, idx_rep).ok_or_else(|| {
+            Error::new_spanned(idx, "internal error: input index not found in size map")
+        })?;
         quotes = quote! {
             for #idxval in (0..#idxlen) {
                 #quotes
@@ -162,9 +162,9 @@ pub fn gen_run_einsum(
     }
     for (i, idx) in indices.output.iter().enumerate().rev() {
         let idxval = format_ident!("__halogen_einsum_iter_out{i}");
-        let idxlen = get_rep_size(idx, idx_rep).expect(
-            "gen_run_einsum: something went wrong I will write err msg later (output idx_rep)",
-        );
+        let idxlen = get_rep_size(idx, idx_rep).ok_or_else(|| {
+            Error::new_spanned(idx, "internal error: output index not found in size map")
+        })?;
         let strideval = format_ident!("__halogen_einsum_iter_stride{i}");
 
         quotes = quote! {
@@ -191,5 +191,5 @@ pub fn gen_run_einsum(
             __halogen_einsum_output_data
         );
     };
-    quotes
+    Ok(quotes)
 }

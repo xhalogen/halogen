@@ -25,7 +25,10 @@ pub fn einsum(input: TokenStream) -> TokenStream {
     };
 
     let def_tensorvalues = def_tensorvalues(&tensors);
-    let def_outputvalues = def_outputvalues(&indices, &input.output, &idx_rep);
+    let def_outputvalues = match def_outputvalues(&indices, &input.output, &idx_rep) {
+        Ok(v) => v,
+        Err(e) => return e.to_compile_error().into(),
+    };
 
     // println!("tmp");
 
@@ -33,8 +36,14 @@ pub fn einsum(input: TokenStream) -> TokenStream {
         // println!("tmp");
         // let tmp = &input.expr;
         // println!("{}", quote! { #tmp }.to_string());
-        let einsum_expr = get_einsum_expr(&indices, &input.expr);
-        gen_run_einsum(&indices, einsum_expr, &idx_rep)
+        let einsum_expr = match get_einsum_expr(&indices, &input.expr) {
+            Ok(v) => v,
+            Err(e) => return e.to_compile_error().into(),
+        };
+        match gen_run_einsum(&indices, einsum_expr, &idx_rep) {
+            Ok(v) => v,
+            Err(e) => return e.to_compile_error().into(),
+        }
     };
     let ret = quote! {
         {
