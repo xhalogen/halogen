@@ -22,23 +22,28 @@ pub fn einsum(input: TokenStream) -> TokenStream {
     let def_tensorvalues = def_tensorvalues(&tensors);
     let def_outputvalues = def_outputvalues(&input.output, &idx_rep);
 
+    // println!("tmp");
+
     let gen_run_einsum = {
         let indices = match get_indices(&tensors, &input.output) {
             Ok(v) => v,
             Err(e) => return e.to_compile_error().into(),
         };
+        // println!("tmp");
+        // let tmp = &input.expr;
+        // println!("{}", quote! { #tmp }.to_string());
         let einsum_expr = get_einsum_expr(&indices, &input.expr);
         gen_run_einsum(&indices, einsum_expr, &idx_rep)
     };
-
     let ret = quote! {
         {
             #def_tensorvalues
             #size_checks
             #def_outputvalues
             #gen_run_einsum
-            __halogen_einsum_output_tensor
+            __halogen_einsum_output_tensor.unwrap()
         }
     };
+    println!("{}", ret.to_string());
     ret.into()
 }

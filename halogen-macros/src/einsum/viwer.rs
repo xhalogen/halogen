@@ -37,6 +37,8 @@ pub fn is_tensorvalue(expridx: &ExprIndex) -> Option<TensorValue> {
 
 fn is_index(expr: &Expr) -> Option<Ident> {
     match expr {
+        Expr::Paren(x) => is_index(&x.expr),
+        Expr::Group(x) => is_index(&x.expr),
         Expr::Path(x) if x.qself.is_none() && x.path.segments.len() == 1 => {
             Some(x.path.segments[0].ident.clone())
         }

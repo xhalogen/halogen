@@ -1,13 +1,17 @@
-use crate::core::tensor::*;
+use crate::core::tensor::DenseTensor;
+use crate::core::tensor::Tensor;
+use halogen_macros::einsum;
 
 #[test]
 fn basic() {
-    // let a: DenseTensor<_> = {
-    //     let a = crate::core::tensor::Tensor::from_vec(&vec![1usize], vec![1]).unwrap();
-    //     a
-    // };
-    // a.at(&[1]);
-    // assert_eq!(a.rank(), 1);
-    // let b: crate::core::tensor::DenseTensor<i32> = [[1, 4, 5, 6], [7, 8, 9, 10]].into();
-    // assert_eq!(b.rank(), 2);
+    let a: DenseTensor<i32> = [[1, 2], [3, 4]].into();
+    let b: DenseTensor<i32> = [[1, 2], [3, 4]].into();
+    println!("hao");
+    let c: DenseTensor<i32> = einsum!(a[i,j] * b[j,k] => [i, k]);
+    for i in 0..2 {
+        for j in 0..2 {
+            print!("{}", c.at(&[i, j]));
+        }
+        println!();
+    }
 }

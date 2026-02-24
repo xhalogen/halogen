@@ -9,12 +9,18 @@ use syn::{
 };
 
 pub fn get_einsum_expr(indices: &TensorIndices, expr: &Expr) -> TokenStream2 {
-    let mut idx_prc = HashMap::<Ident, Ident>::new();
+    let mut idx_prc = HashMap::<String, Ident>::new();
     for (i, idx) in indices.input.iter().enumerate() {
-        idx_prc.insert(idx.clone(), format_ident!("__halogen_einsum_iter_in{i}"));
+        idx_prc.insert(
+            idx.to_string(),
+            format_ident!("__halogen_einsum_iter_in{i}"),
+        );
     }
     for (i, idx) in indices.output.iter().enumerate() {
-        idx_prc.insert(idx.clone(), format_ident!("__halogen_einsum_iter_out{i}"));
+        idx_prc.insert(
+            idx.to_string(),
+            format_ident!("__halogen_einsum_iter_out{i}"),
+        );
     }
     let mut folder = TensorValueFolder { idx_prc: &idx_prc };
     let folded = folder.fold_expr(expr.clone());
@@ -22,12 +28,11 @@ pub fn get_einsum_expr(indices: &TensorIndices, expr: &Expr) -> TokenStream2 {
 }
 
 struct TensorValueFolder<'a> {
-    idx_prc: &'a HashMap<Ident, Ident>,
+    idx_prc: &'a HashMap<String, Ident>,
 }
 
 impl<'a> Fold for TensorValueFolder<'a> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
-        let expr = fold::fold_expr(self, expr);
         if let Expr::Index(expridx) = &expr
             && let Some(t) = is_tensorvalue(expridx)
         {
@@ -37,7 +42,7 @@ impl<'a> Fold for TensorValueFolder<'a> {
                     .iter()
                     .map(|x| {
                         self.idx_prc
-                            .get(x)
+                            .get(&x.to_string())
                             .cloned()
                             .expect(
                                 "fold_expr: something went wrong I will write err msg later (input idx_rep)"
@@ -48,6 +53,6 @@ impl<'a> Fold for TensorValueFolder<'a> {
                 (#tensor).at(&[ #(#indices),* ])
             };
         }
-        expr
+        fold::fold_expr(self, expr)
     }
 }
