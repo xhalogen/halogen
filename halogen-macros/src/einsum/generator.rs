@@ -60,6 +60,7 @@ pub fn def_outputvalues(
     exprresult: &[Ident],
     idx_rep: &HashMap<String, (Ident2, usize)>,
 ) -> Result<TokenStream2> {
+    // defining shape, data
     let mut ret = Vec::new();
     ret.push(quote! {
         let mut __halogen_einsum_output_shape: ::std::vec::Vec<usize> = ::std::vec::Vec::new();
@@ -76,18 +77,18 @@ pub fn def_outputvalues(
         let mut __halogen_einsum_output_data = ::std::vec![::core::default::Default::default(); __halogen_einsum_output_data_len];
     });
 
+    // defining stride
     let mut idx_prc = HashMap::<String, usize>::new();
     for (i, idx) in indices.output.iter().enumerate() {
         idx_prc.insert(idx.to_string(), i);
     }
     ret.push(quote! {
-        let mut __halogen_einsum_iter_stride_tmp = 1;
-        let mut __halogen_einsum_iter_stride_sum = 0;
+        let mut __halogen_einsum_iter_stride_tmp: usize = 1;
     });
     for i in (0..indices.output.len()).rev() {
         let strd = format_ident!("__halogen_einsum_iter_stride{i}");
         ret.push(quote! {
-            let mut #strd = 0;
+            let mut #strd: usize = 0;
         });
     }
     for idx in exprresult.iter().rev() {
@@ -100,34 +101,7 @@ pub fn def_outputvalues(
         ret.push(quote! {
             #strd += __halogen_einsum_iter_stride_tmp;
             __halogen_einsum_iter_stride_tmp *= #idxlen;
-            __halogen_einsum_iter_stride_sum += #strd;
         });
-    }
-    ret.push(quote! {
-        __halogen_einsum_iter_stride_tmp = 0;
-    });
-    for i in 0..indices.output.len() {
-        let strd = format_ident!("__halogen_einsum_iter_stride{i}");
-        ret.push(quote! {
-            __halogen_einsum_iter_stride_sum -= #strd;
-            #strd -= __halogen_einsum_iter_stride_sum;
-        });
-    }
-    ret.push(quote! {
-        __halogen_einsum_iter_stride_tmp = 0;
-    });
-    for i in (0..indices.output.len()).rev() {
-        let strd = format_ident!("__halogen_einsum_iter_stride{i}");
-        if i == indices.output.len() - 1 {
-            ret.push(quote! {
-                __halogen_einsum_iter_stride_tmp = #strd;
-            });
-        } else {
-            ret.push(quote! {
-                #strd -= __halogen_einsum_iter_stride_tmp;
-                __halogen_einsum_iter_stride_tmp += #strd;
-            });
-        }
     }
     Ok(quote! { #(#ret)* })
 }
@@ -157,11 +131,13 @@ pub fn gen_run_einsum(
             Error::new_spanned(idx, "internal error: output index not found in size map")
         })?;
         let strideval = format_ident!("__halogen_einsum_iter_stride{i}");
+        let savedval = format_ident!("__halogen_einsum_iter_saved{i}");
 
         quotes = quote! {
             for #idxval in (0..#idxlen) {
+                let #savedval = __halogen_einsum_iter_index;
                 #quotes
-                __halogen_einsum_iter_index += #strideval;
+                __halogen_einsum_iter_index = #savedval + #strideval;
             }
         };
     }
