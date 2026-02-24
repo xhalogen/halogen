@@ -43,17 +43,17 @@ fn preprocess_einsum(tokens: TokenStream2) -> TokenStream2 {
     let mut ret = TokenStream2::new();
     let mut now = 0;
     while now < tokens.len() {
-        if let Some(TokenTree2::Ident(_)) = tokens.get(now) {
-            if let Some(TokenTree2::Group(g)) = tokens.get(now + 1) {
-                if g.delimiter() == proc_macro2::Delimiter::Bracket {
-                    let indices = g.stream();
-                    let tensor = tokens[now].clone();
-                    ret.extend(quote! {#tensor[(#indices)]});
-                    now += 2;
-                    continue;
-                }
-            }
+        if let Some(TokenTree2::Ident(_)) = tokens.get(now)
+            && let Some(TokenTree2::Group(g)) = tokens.get(now + 1)
+            && g.delimiter() == proc_macro2::Delimiter::Bracket
+        {
+            let indices = g.stream();
+            let tensor = tokens[now].clone();
+            ret.extend(quote! {#tensor[(#indices)]});
+            now += 2;
+            continue;
         }
+
         ret.extend(once(tokens[now].clone()));
         now += 1;
     }

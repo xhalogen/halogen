@@ -44,6 +44,6 @@ pub fn einsum(input: TokenStream) -> TokenStream {
             __halogen_einsum_output_tensor.unwrap()
         }
     };
-    println!("{}", ret.to_string());
+    // println!("{}", ret.to_string());
     ret.into()
 }
