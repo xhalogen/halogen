@@ -3,17 +3,17 @@ use quote::quote;
 use syn::parse_macro_input;
 
 mod parser;
-pub use parser::*;
+use parser::*;
 mod folder;
-pub use folder::*;
+use folder::*;
 mod viewer;
-pub use viewer::*;
+use viewer::*;
 mod indexer;
-pub use indexer::*;
+use indexer::*;
 mod generator;
-pub use generator::*;
+use generator::*;
 
-pub fn einsum(input: TokenStream) -> TokenStream {
+pub(crate) fn einsum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as EinsumInput);
     let tensors = get_tensorvalues(&input.expr);
 

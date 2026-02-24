@@ -4,7 +4,7 @@ use crate::core::tensor::Tensor;
 mod ext;
 mod ops;
 pub use ext::*;
-pub use ops::*;
+use ops::*;
 
 pub fn fmap<A, C, F>(a: &A, mut f: F) -> Result<C, TensorError>
 where

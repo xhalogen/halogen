@@ -4,7 +4,7 @@ use crate::core::tensor::Tensor;
 mod ext;
 mod ops;
 pub use ext::*;
-pub use ops::*;
+use ops::*;
 
 pub fn zipwith<A, B, C, F>(a: &A, b: &B, mut f: F) -> Result<C, TensorError>
 where
