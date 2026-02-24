@@ -73,3 +73,44 @@ impl<T> Tensor for DenseTensor<T> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_vec_creates_correct_shape_and_data() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        assert_eq!(t.shape(), &[2, 3]);
+        assert_eq!(t.as_slice(), &[1, 2, 3, 4, 5, 6]);
+        assert_eq!(t.rank(), 2);
+    }
+
+    #[test]
+    fn from_vec_rejects_length_mismatch() {
+        assert!(DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3]).is_err());
+    }
+
+    #[test]
+    fn get_returns_correct_elements() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        assert_eq!(t.get(&[0, 0]).unwrap(), &1);
+        assert_eq!(t.get(&[0, 2]).unwrap(), &3);
+        assert_eq!(t.get(&[1, 0]).unwrap(), &4);
+        assert_eq!(t.get(&[1, 2]).unwrap(), &6);
+    }
+
+    #[test]
+    fn get_rejects_out_of_bounds() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        assert!(t.get(&[2, 0]).is_err());
+        assert!(t.get(&[0, 3]).is_err());
+    }
+
+    #[test]
+    fn get_rejects_wrong_rank() {
+        let t = DenseTensor::<i32>::from_vec(&[2, 3], vec![1, 2, 3, 4, 5, 6]).unwrap();
+        assert!(t.get(&[0]).is_err());
+        assert!(t.get(&[0, 0, 0]).is_err());
+    }
+}

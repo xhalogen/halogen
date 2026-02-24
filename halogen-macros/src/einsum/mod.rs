@@ -30,12 +30,7 @@ pub fn einsum(input: TokenStream) -> TokenStream {
         Err(e) => return e.to_compile_error().into(),
     };
 
-    // println!("tmp");
-
     let gen_run_einsum = {
-        // println!("tmp");
-        // let tmp = &input.expr;
-        // println!("{}", quote! { #tmp }.to_string());
         let einsum_expr = match get_einsum_expr(&indices, &input.expr) {
             Ok(v) => v,
             Err(e) => return e.to_compile_error().into(),
@@ -54,6 +49,5 @@ pub fn einsum(input: TokenStream) -> TokenStream {
             __halogen_einsum_output_tensor.unwrap()
         }
     };
-    // println!("{}", ret.to_string());
     ret.into()
 }

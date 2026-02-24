@@ -29,3 +29,34 @@ where
     }
     C::from_vec(a.shape(), ret)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::tensor::DenseTensor;
+
+    #[test]
+    fn zipwith_combines_elementwise() {
+        let a = DenseTensor::<i32>::from_vec(&[2, 2], vec![1, 2, 3, 4]).unwrap();
+        let b = DenseTensor::<i32>::from_vec(&[2, 2], vec![5, 6, 7, 8]).unwrap();
+        let c: DenseTensor<i32> = zipwith(&a, &b, |x, y| x + y).unwrap();
+        assert_eq!(c.as_slice(), &[6, 8, 10, 12]);
+        assert_eq!(c.shape(), a.shape());
+    }
+
+    #[test]
+    fn zipwith_multiplies_elementwise() {
+        let a = DenseTensor::<i32>::from_vec(&[3], vec![1, 2, 3]).unwrap();
+        let b = DenseTensor::<i32>::from_vec(&[3], vec![4, 5, 6]).unwrap();
+        let c: DenseTensor<i32> = zipwith(&a, &b, |x, y| x * y).unwrap();
+        assert_eq!(c.as_slice(), &[4, 10, 18]);
+    }
+
+    #[test]
+    fn zipwith_rejects_shape_mismatch() {
+        let a = DenseTensor::<i32>::from_vec(&[2, 2], vec![1, 2, 3, 4]).unwrap();
+        let b = DenseTensor::<i32>::from_vec(&[4], vec![1, 2, 3, 4]).unwrap();
+        let result: Result<DenseTensor<i32>, _> = zipwith(&a, &b, |x, y| x + y);
+        assert!(result.is_err());
+    }
+}

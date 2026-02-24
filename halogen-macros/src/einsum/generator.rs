@@ -101,7 +101,6 @@ pub fn def_outputvalues(
             #strd += __halogen_einsum_iter_stride_tmp;
             __halogen_einsum_iter_stride_tmp *= #idxlen;
             __halogen_einsum_iter_stride_sum += #strd;
-            // println!("strd: {}",#strd);
         });
     }
     ret.push(quote! {
@@ -111,9 +110,7 @@ pub fn def_outputvalues(
         let strd = format_ident!("__halogen_einsum_iter_stride{i}");
         ret.push(quote! {
             __halogen_einsum_iter_stride_sum -= #strd;
-            // println!("--strd {}: {}",#i,#strd);
             #strd -= __halogen_einsum_iter_stride_sum;
-            // println!("----{} {}",#i,#strd);
         });
     }
     ret.push(quote! {
@@ -131,10 +128,6 @@ pub fn def_outputvalues(
                 __halogen_einsum_iter_stride_tmp += #strd;
             });
         }
-        // ret.push(quote! {
-        //     println!("--strd {}: {}",#i,#strd);
-        //     println!("----{} {}",#i,#strd);
-        // });
     }
     Ok(quote! { #(#ret)* })
 }
@@ -144,9 +137,7 @@ pub fn gen_run_einsum(
     einsum_expr: TokenStream2,
     idx_rep: &HashMap<String, (Ident2, usize)>,
 ) -> Result<TokenStream2> {
-    // println!("tmp");
     let mut quotes = quote! {
-        // println!("iteridx: {__halogen_einsum_iter_index}");
         __halogen_einsum_output_data[__halogen_einsum_iter_index] += #einsum_expr;
     };
     for (i, idx) in indices.input.iter().enumerate().rev() {
@@ -170,21 +161,12 @@ pub fn gen_run_einsum(
         quotes = quote! {
             for #idxval in (0..#idxlen) {
                 #quotes
-                // println!("stride: {}", #strideval);
-                __halogen_einsum_iter_index += #strideval; // update index
+                __halogen_einsum_iter_index += #strideval;
             }
-            // __halogen_einsum_iter_stride *= #idxlen; // update stride
         };
-        // if i == indices.output.len() - 1 {
-        //     quotes = quote! {
-        //         // __halogen_einsum_iter_stride = 1; // init stride
-        //         #quotes
-        //     };
-        // }
     }
     quotes = quote! {
-        let mut __halogen_einsum_iter_index: usize = 0; // init index
-        // let mut __halogen_einsum_iter_stride: usize = 1; // init stride
+        let mut __halogen_einsum_iter_index: usize = 0;
         #quotes
         let __halogen_einsum_output_tensor = crate::core::tensor::Tensor::from_vec(
             &__halogen_einsum_output_shape,
