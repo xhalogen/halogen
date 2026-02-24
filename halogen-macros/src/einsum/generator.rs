@@ -56,6 +56,7 @@ pub fn gen_size_checks(
 }
 
 pub fn def_outputvalues(
+    indices: &TensorIndices,
     exprresult: &[Ident],
     idx_rep: &HashMap<String, (Ident2, usize)>,
 ) -> TokenStream2 {
@@ -73,17 +74,68 @@ pub fn def_outputvalues(
     ret.push(quote! {
         let __halogen_einsum_output_data_len: usize = __halogen_einsum_output_shape.iter().product();
         let mut __halogen_einsum_output_data = ::std::vec![0; __halogen_einsum_output_data_len];
-        // let mut __halogen_einsum_output_stride ::std::vec::Vec<usize> = ::std::vec::Vec::new();
-        // if !__halogen_einsum_output_shape.is_empty() {
-        //     __halogen_einsum_output_stride.resize(__halogen_einsum_output_shape.len(), 0);
-        //     __halogen_einsum_output_stride[__halogen_einsum_output_shape.len()-1] = 1;
-        //     for i in (0..__halogen_einsum_output_shape.len()-1).rev() {
-        //         __halogen_einsum_output_stride[i]
-        //             = __halogen_einsum_output_stride[i+1]
-        //             * __halogen_einsum_output_shape[i+1];
-        //     }
-        // }
     });
+
+    let mut idx_prc = HashMap::<String, usize>::new();
+    for (i, idx) in indices.output.iter().enumerate() {
+        idx_prc.insert(idx.to_string(), i);
+    }
+    ret.push(quote! {
+        let mut __halogen_einsum_iter_stride_tmp = 1;
+        let mut __halogen_einsum_iter_stride_sum = 0;
+    });
+    for i in (0..indices.output.len()).rev() {
+        let strd = format_ident!("__halogen_einsum_iter_stride{i}");
+        ret.push(quote! {
+            let mut #strd = 0;
+        });
+    }
+    for idx in exprresult.iter().rev() {
+        let key = *idx_prc
+            .get(&idx.to_string())
+            .expect("def_outputvalues: something went wrong I will write err msg later");
+        let strd = format_ident!("__halogen_einsum_iter_stride{key}");
+        let idxlen =
+            get_rep_size(idx, idx_rep).expect("expression must contain every output index");
+        ret.push(quote! {
+            #strd += __halogen_einsum_iter_stride_tmp;
+            __halogen_einsum_iter_stride_tmp *= #idxlen;
+            __halogen_einsum_iter_stride_sum += #strd;
+            // println!("strd: {}",#strd);
+        });
+    }
+    ret.push(quote! {
+        __halogen_einsum_iter_stride_tmp = 0;
+    });
+    for i in 0..indices.output.len() {
+        let strd = format_ident!("__halogen_einsum_iter_stride{i}");
+        ret.push(quote! {
+            __halogen_einsum_iter_stride_sum -= #strd;
+            // println!("--strd {}: {}",#i,#strd);
+            #strd -= __halogen_einsum_iter_stride_sum;
+            // println!("----{} {}",#i,#strd);
+        });
+    }
+    ret.push(quote! {
+        __halogen_einsum_iter_stride_tmp = 0;
+    });
+    for i in (0..indices.output.len()).rev() {
+        let strd = format_ident!("__halogen_einsum_iter_stride{i}");
+        if i == indices.output.len() - 1 {
+            ret.push(quote! {
+                __halogen_einsum_iter_stride_tmp = #strd;
+            });
+        } else {
+            ret.push(quote! {
+                #strd -= __halogen_einsum_iter_stride_tmp;
+                __halogen_einsum_iter_stride_tmp += #strd;
+            });
+        }
+        // ret.push(quote! {
+        //     println!("--strd {}: {}",#i,#strd);
+        //     println!("----{} {}",#i,#strd);
+        // });
+    }
     quote! { #(#ret)* }
 }
 
@@ -94,10 +146,8 @@ pub fn gen_run_einsum(
 ) -> TokenStream2 {
     // println!("tmp");
     let mut quotes = quote! {
-        // println!("{__halogen_einsum_iter_index}");
-        //
-        __halogen_einsum_output_data[0] += #einsum_expr; // !!!!!!!!!!!!!!
-        // __halogen_einsum_iter_index += __halogen_einsum_iter_stride;
+        // println!("iteridx: {__halogen_einsum_iter_index}");
+        __halogen_einsum_output_data[__halogen_einsum_iter_index] += #einsum_expr;
     };
     for (i, idx) in indices.input.iter().enumerate().rev() {
         let idxval = format_ident!("__halogen_einsum_iter_in{i}");
@@ -115,23 +165,25 @@ pub fn gen_run_einsum(
         let idxlen = get_rep_size(idx, idx_rep).expect(
             "gen_run_einsum: something went wrong I will write err msg later (output idx_rep)",
         );
+        let strideval = format_ident!("__halogen_einsum_iter_stride{i}");
+
         quotes = quote! {
             for #idxval in (0..#idxlen) {
                 #quotes
-                // __halogen_einsum_iter_index += __halogen_einsum_iter_stride; // update index
+                // println!("stride: {}", #strideval);
+                __halogen_einsum_iter_index += #strideval; // update index
             }
             // __halogen_einsum_iter_stride *= #idxlen; // update stride
         };
-        if i == indices.output.len() - 1 {
-            quotes = quote! {
-                // __halogen_einsum_iter_stride = 1; // init stride
-                #quotes
-            };
-        }
+        // if i == indices.output.len() - 1 {
+        //     quotes = quote! {
+        //         // __halogen_einsum_iter_stride = 1; // init stride
+        //         #quotes
+        //     };
+        // }
     }
-    // println!("tmp");
     quotes = quote! {
-        // let mut __halogen_einsum_iter_index: usize = 0; // init index
+        let mut __halogen_einsum_iter_index: usize = 0; // init index
         // let mut __halogen_einsum_iter_stride: usize = 1; // init stride
         #quotes
         let __halogen_einsum_output_tensor = crate::core::tensor::Tensor::from_vec(

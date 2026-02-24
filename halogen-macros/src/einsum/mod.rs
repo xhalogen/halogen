@@ -19,16 +19,17 @@ pub fn einsum(input: TokenStream) -> TokenStream {
 
     let (size_checks, idx_rep) = gen_size_checks(&tensors);
 
+    let indices = match get_indices(&tensors, &input.output) {
+        Ok(v) => v,
+        Err(e) => return e.to_compile_error().into(),
+    };
+
     let def_tensorvalues = def_tensorvalues(&tensors);
-    let def_outputvalues = def_outputvalues(&input.output, &idx_rep);
+    let def_outputvalues = def_outputvalues(&indices, &input.output, &idx_rep);
 
     // println!("tmp");
 
     let gen_run_einsum = {
-        let indices = match get_indices(&tensors, &input.output) {
-            Ok(v) => v,
-            Err(e) => return e.to_compile_error().into(),
-        };
         // println!("tmp");
         // let tmp = &input.expr;
         // println!("{}", quote! { #tmp }.to_string());
@@ -44,6 +45,6 @@ pub fn einsum(input: TokenStream) -> TokenStream {
             __halogen_einsum_output_tensor.unwrap()
         }
     };
-    // println!("{}", ret.to_string());
+    println!("{}", ret.to_string());
     ret.into()
 }
