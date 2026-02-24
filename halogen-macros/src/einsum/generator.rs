@@ -18,10 +18,7 @@ pub fn def_tensorvalues(tensors: &[TensorValue]) -> TokenStream2 {
     quote! {#(#ret)*}
 }
 
-pub fn get_rep_size(
-    idx: &Ident,
-    idx_rep: &HashMap<String, (Ident2, usize)>,
-) -> Option<TokenStream2> {
+fn get_rep_size(idx: &Ident, idx_rep: &HashMap<String, (Ident2, usize)>) -> Option<TokenStream2> {
     if let Some((rep_shval, rep_axis)) = idx_rep.get(&idx.to_string()) {
         return Some(quote! {(#rep_shval)[#rep_axis]});
     }
@@ -82,19 +79,22 @@ pub fn def_outputvalues(
     for (i, idx) in indices.output.iter().enumerate() {
         idx_prc.insert(idx.to_string(), i);
     }
+    // defining tmp variable
     ret.push(quote! {
         let mut __halogen_einsum_iter_stride_tmp: usize = 1;
     });
+    // defining & initializing stride variables
     for i in (0..indices.output.len()).rev() {
         let strd = format_ident!("__halogen_einsum_iter_stride{i}");
         ret.push(quote! {
             let mut #strd: usize = 0;
         });
     }
+    // calculating stride variables
     for idx in exprresult.iter().rev() {
         let key = *idx_prc
             .get(&idx.to_string())
-            .expect("def_outputvalues: something went wrong I will write err msg later");
+            .expect("internal error: something went wrong while calculating stride variables");
         let strd = format_ident!("__halogen_einsum_iter_stride{key}");
         let idxlen =
             get_rep_size(idx, idx_rep).expect("expression must contain every output index");
@@ -111,9 +111,11 @@ pub fn gen_run_einsum(
     einsum_expr: TokenStream2,
     idx_rep: &HashMap<String, (Ident2, usize)>,
 ) -> Result<TokenStream2> {
+    // updating result tensor datas
     let mut quotes = quote! {
         __halogen_einsum_output_data[__halogen_einsum_iter_index] += #einsum_expr;
     };
+    // for loops for inner indices (indices which is not indices of result tensor)
     for (i, idx) in indices.input.iter().enumerate().rev() {
         let idxval = format_ident!("__halogen_einsum_iter_in{i}");
         let idxlen = get_rep_size(idx, idx_rep).ok_or_else(|| {
@@ -125,6 +127,7 @@ pub fn gen_run_einsum(
             }
         };
     }
+    // for loops for outer indices (indices of result tensor)
     for (i, idx) in indices.output.iter().enumerate().rev() {
         let idxval = format_ident!("__halogen_einsum_iter_out{i}");
         let idxlen = get_rep_size(idx, idx_rep).ok_or_else(|| {
@@ -141,6 +144,7 @@ pub fn gen_run_einsum(
             }
         };
     }
+    // returning result tensor
     quotes = quote! {
         let mut __halogen_einsum_iter_index: usize = 0;
         #quotes
