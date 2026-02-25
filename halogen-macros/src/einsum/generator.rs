@@ -46,7 +46,7 @@ pub fn gen_size_checks(
     for (i, t) in tensors.iter().enumerate() {
         let shval = format_ident!("__halogen_einsum_shape{i}");
         for (axis, idx) in t.right_indices.iter().enumerate() {
-            let idxlen = get_size(idx, &size_map).ok_or_else(|| {
+            let idxlen = get_size(idx, size_map).ok_or_else(|| {
                 Error::new_spanned(idx, "internal error: input index not found in size map")
             })?;
             let idx_name = idx.to_string();
