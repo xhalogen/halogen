@@ -8,8 +8,8 @@ use syn::{
 };
 
 pub struct EinsumInput {
-    pub expr: Expr,
-    pub output: Vec<Ident>,
+    pub left_exprs: Expr,
+    pub right_indices: Vec<Ident>,
 }
 
 impl Parse for EinsumInput {
@@ -28,7 +28,10 @@ impl Parse for EinsumInput {
             .into_iter()
             .collect();
 
-        Ok(EinsumInput { expr, output })
+        Ok(EinsumInput {
+            left_exprs: expr,
+            right_indices: output,
+        })
     }
 }
 

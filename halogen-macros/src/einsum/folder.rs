@@ -10,17 +10,11 @@ use syn::{
 
 pub fn get_einsum_expr(indices: &TensorIndices, expr: &Expr) -> Result<TokenStream2> {
     let mut idx_prc = HashMap::<String, Ident>::new();
-    for (i, idx) in indices.input.iter().enumerate() {
-        idx_prc.insert(
-            idx.to_string(),
-            format_ident!("__halogen_einsum_iter_in{i}"),
-        );
+    for (i, idx) in indices.inner.iter().enumerate() {
+        idx_prc.insert(idx.to_string(), format_ident!("__halogen_einsum_inner{i}"));
     }
-    for (i, idx) in indices.output.iter().enumerate() {
-        idx_prc.insert(
-            idx.to_string(),
-            format_ident!("__halogen_einsum_iter_out{i}"),
-        );
+    for (i, idx) in indices.outer.iter().enumerate() {
+        idx_prc.insert(idx.to_string(), format_ident!("__halogen_einsum_outer{i}"));
     }
     let mut folder = TensorValueFolder {
         idx_prc: &idx_prc,
@@ -48,7 +42,7 @@ impl<'a> Fold for TensorValueFolder<'a> {
 
         if let Some(t) = tensor_value {
             let result: Result<Vec<Ident>> =
-                t.indices
+                t.right_indices
                     .iter()
                     .map(|x| {
                         self.idx_prc.get(&x.to_string()).cloned().ok_or_else(|| {
@@ -63,7 +57,7 @@ impl<'a> Fold for TensorValueFolder<'a> {
                     return expr;
                 }
                 Ok(indices) => {
-                    let tensor = t.tensor;
+                    let tensor = t.left_tensors;
                     return parse_quote! {
                         (#tensor).at(&[ #(#indices),* ])
                     };

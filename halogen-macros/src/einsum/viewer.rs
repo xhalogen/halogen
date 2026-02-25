@@ -1,8 +1,8 @@
 use syn::{Expr, ExprIndex, Ident, visit, visit::Visit};
 
 pub struct TensorValue {
-    pub tensor: Box<Expr>,
-    pub indices: Vec<Ident>,
+    pub left_tensors: Box<Expr>,
+    pub right_indices: Vec<Ident>,
 }
 
 pub fn get_tensorvalues(expr: &Expr) -> Vec<TensorValue> {
@@ -32,7 +32,10 @@ pub fn is_tensorvalue(expridx: &ExprIndex) -> Option<TensorValue> {
         x => vec![is_index(x)?],
     };
 
-    Some(TensorValue { tensor, indices })
+    Some(TensorValue {
+        left_tensors: tensor,
+        right_indices: indices,
+    })
 }
 
 fn is_index(expr: &Expr) -> Option<Ident> {

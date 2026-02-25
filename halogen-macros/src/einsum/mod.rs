@@ -13,39 +13,51 @@ use indexer::*;
 mod generator;
 use generator::*;
 
-pub(crate) fn einsum(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as EinsumInput);
-    let tensors = get_tensorvalues(&input.expr);
-
-    let (size_checks, idx_rep) = gen_size_checks(&tensors);
-
-    let indices = match get_indices(&tensors, &input.output) {
+pub(crate) fn einsum(tokens: TokenStream) -> TokenStream {
+    // 파싱
+    let tokens = parse_macro_input!(tokens as EinsumInput);
+    // 입력값들
+    let left_tensors = get_tensorvalues(&tokens.left_exprs);
+    // 인덱스 크기에 관한 사상
+    let size_map = get_size_map(&left_tensors);
+    // 인덱스들
+    let indices = match get_indices(&left_tensors, &tokens.right_indices) {
         Ok(v) => v,
         Err(e) => return e.to_compile_error().into(),
     };
 
-    let def_tensorvalues = def_tensorvalues(&tensors);
-    let def_outputvalues = match def_outputvalues(&indices, &input.output, &idx_rep) {
+    // 코드 생성부
+
+    // 합규약의 입력 텐서들을 정의
+    let inputvalues_code = def_inputvalues(&left_tensors);
+    // 같은 이름의 인덱스가 같은 크기를 가지는지 검증
+    let size_checking_code = match gen_size_checks(&left_tensors, &size_map) {
         Ok(v) => v,
         Err(e) => return e.to_compile_error().into(),
     };
-
-    let gen_run_einsum = {
-        let einsum_expr = match get_einsum_expr(&indices, &input.expr) {
+    // 합규약의 출력 텐서 관련 변수들을 정의
+    let outputvalues_code = match def_outputvalues(&indices, &tokens.right_indices, &size_map) {
+        Ok(v) => v,
+        Err(e) => return e.to_compile_error().into(),
+    };
+    // 합 규약의 계산 루프
+    let einsum_loop_code = {
+        let einsum_expr = match get_einsum_expr(&indices, &tokens.left_exprs) {
             Ok(v) => v,
             Err(e) => return e.to_compile_error().into(),
         };
-        match gen_run_einsum(&indices, einsum_expr, &idx_rep) {
+        match gen_einsum_loop(&indices, einsum_expr, &size_map) {
             Ok(v) => v,
             Err(e) => return e.to_compile_error().into(),
         }
     };
+
     let ret = quote! {
         {
-            #def_tensorvalues
-            #size_checks
-            #def_outputvalues
-            #gen_run_einsum
+            #inputvalues_code
+            #size_checking_code
+            #outputvalues_code
+            #einsum_loop_code
             __halogen_einsum_output_tensor.unwrap()
         }
     };

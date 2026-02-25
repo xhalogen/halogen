@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use syn::{Error, Ident, Result};
 
 pub struct TensorIndices {
-    pub input: Vec<Ident>,
-    pub output: Vec<Ident>,
+    pub inner: Vec<Ident>,
+    pub outer: Vec<Ident>,
 }
 
 fn get_unique_indices(indices: &[Ident]) -> (Vec<Ident>, HashMap<Ident, i32>) {
@@ -20,16 +20,16 @@ fn get_unique_indices(indices: &[Ident]) -> (Vec<Ident>, HashMap<Ident, i32>) {
     (ret, count)
 }
 
-pub fn get_indices(tensors: &[TensorValue], exprresult: &[Ident]) -> Result<TensorIndices> {
+pub fn get_indices(tensors: &[TensorValue], right_indices: &[Ident]) -> Result<TensorIndices> {
     let (expr_idxs, expr_count) = {
         let tmp: Vec<Ident> = tensors
             .iter()
-            .flat_map(|x| x.indices.iter())
+            .flat_map(|x| x.right_indices.iter())
             .cloned()
             .collect();
         get_unique_indices(&tmp)
     };
-    let (res_idxs, res_count) = get_unique_indices(exprresult);
+    let (res_idxs, res_count) = get_unique_indices(right_indices);
     for idx in &res_idxs {
         if !expr_count.contains_key(idx) {
             return Err(Error::new_spanned(
@@ -45,5 +45,8 @@ pub fn get_indices(tensors: &[TensorValue], exprresult: &[Ident]) -> Result<Tens
             input.push(idx.clone());
         }
     }
-    Ok(TensorIndices { input, output })
+    Ok(TensorIndices {
+        inner: input,
+        outer: output,
+    })
 }

@@ -29,6 +29,7 @@
             rust-analyzer
             cargo-dist
             cargo-release
+            cargo-expand
           ];
         };
       }
