@@ -81,7 +81,7 @@ pub fn def_outputvalues(
         shape_tok.push(quote! {#idx_len,});
     }
     ret.push(quote! {
-        let #shape_v: ::std::vec::Vec<usize> = vec![#(#shape_tok)*];
+        let #shape_v = [#(#shape_tok)*];
     });
     ret.push(quote! {
         let mut #data_v = ::std::vec![::core::default::Default::default(); #shape_v.iter().product()];
