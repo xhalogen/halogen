@@ -1,6 +1,6 @@
-use crate::einsum::{TensorIndices, is_tensorvalue};
+use crate::einsum::{TensorIndices, defv::*, is_tensorvalue};
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{format_ident, quote};
+use quote::quote;
 use std::collections::HashMap;
 use syn::{
     Error, Expr, Ident, Result,
@@ -11,10 +11,10 @@ use syn::{
 pub fn get_einsum_expr(indices: &TensorIndices, expr: &Expr) -> Result<TokenStream2> {
     let mut idx_prc = HashMap::<String, Ident>::new();
     for (i, idx) in indices.inner.iter().enumerate() {
-        idx_prc.insert(idx.to_string(), format_ident!("__halogen_einsum_inner{i}"));
+        idx_prc.insert(idx.to_string(), get_inner_i(i));
     }
     for (i, idx) in indices.outer.iter().enumerate() {
-        idx_prc.insert(idx.to_string(), format_ident!("__halogen_einsum_outer{i}"));
+        idx_prc.insert(idx.to_string(), get_outer_i(i));
     }
     let mut folder = TensorValueFolder {
         idx_prc: &idx_prc,

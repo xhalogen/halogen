@@ -1,5 +1,5 @@
 use crate::einsum::TensorValue;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use syn::{Error, Ident, Result};
 
 pub struct TensorIndices {
@@ -7,17 +7,28 @@ pub struct TensorIndices {
     pub outer: Vec<Ident>,
 }
 
-fn get_unique_indices(indices: &[Ident]) -> (Vec<Ident>, HashMap<Ident, i32>) {
-    let mut count = HashMap::<Ident, i32>::new();
+fn get_unique_indices(
+    indices: &[Ident],
+    force_unique: bool,
+) -> Result<(Vec<Ident>, HashSet<Ident>)> {
+    let mut count = HashSet::<Ident>::new();
     let mut ret = Vec::new();
     for idx in indices {
-        let tmp = count.entry(idx.clone()).or_insert(0);
-        if *tmp == 0 {
-            ret.push(idx.clone());
-        }
-        *tmp += 1;
+        match count.contains(idx) {
+            false => {
+                count.insert(idx.clone());
+                ret.push(idx.clone());
+            }
+            true if force_unique => {
+                return Err(Error::new_spanned(
+                    idx,
+                    "every output indices should be unique",
+                ));
+            }
+            _ => (),
+        };
     }
-    (ret, count)
+    Ok((ret, count))
 }
 
 pub fn get_indices(tensors: &[TensorValue], right_indices: &[Ident]) -> Result<TensorIndices> {
@@ -27,21 +38,21 @@ pub fn get_indices(tensors: &[TensorValue], right_indices: &[Ident]) -> Result<T
             .flat_map(|x| x.right_indices.iter())
             .cloned()
             .collect();
-        get_unique_indices(&tmp)
+        get_unique_indices(&tmp, false)?
     };
-    let (res_idxs, res_count) = get_unique_indices(right_indices);
+    let (res_idxs, res_count) = get_unique_indices(right_indices, true)?;
     for idx in &res_idxs {
-        if !expr_count.contains_key(idx) {
+        if !expr_count.contains(idx) {
             return Err(Error::new_spanned(
                 idx,
-                "expression must contain every output index",
+                "expression must contain every output indices",
             ));
         }
     }
     let output = res_idxs;
     let mut input = Vec::new();
     for idx in &expr_idxs {
-        if !res_count.contains_key(idx) {
+        if !res_count.contains(idx) {
             input.push(idx.clone());
         }
     }
