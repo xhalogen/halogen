@@ -40,4 +40,37 @@ mod tests {
         // [[1*3, 1*4, 1*5], [2*3, 2*4, 2*5]] = [[3, 4, 5], [6, 8, 10]]
         assert_eq!(c.as_slice(), &[3, 4, 5, 6, 8, 10]);
     }
+
+    #[test]
+    fn tr() {
+        let a: DenseTensor<i32> = [[1, 2], [3, 4]].into();
+        let c = crate::einsum!(a[i, i] => [i]);
+        assert_eq!(c.shape(), &[2]);
+        // [[1*3, 1*4, 1*5], [2*3, 2*4, 2*5]] = [[3, 4, 5], [6, 8, 10]]
+        assert_eq!(c.as_slice(), &[1, 4]);
+    }
+
+    #[test]
+    fn edge_case_0() {
+        let a: DenseTensor<i32> = [[1, 2], [3, 4]].into();
+        let b: DenseTensor<i32> = [[3, 4], [5, 6]].into();
+        let c = crate::einsum!(a[i, i] + 3 + b[i, j] * 3 => [i]);
+        assert_eq!(c.shape(), &[2]);
+        // [[1*3, 1*4, 1*5], [2*3, 2*4, 2*5]] = [[3, 4, 5], [6, 8, 10]]
+        assert_eq!(c.as_slice(), &[29, 47]);
+    }
+
+    // TODO:    파서 고치기
+    // LINE:    crate::einsum!((a[i, i] + 3) + b[i, j] * 3 => [i]);
+    // ERROR:   unexpected token, expected `]`
+    // halogen-macros/src/einsum/parser.rs의 preprocess_einsum 문제로 추정
+    // #[test]
+    // fn edge_case_1() {
+    //     let a: DenseTensor<i32> = [[1, 2], [3, 4]].into();
+    //     let b: DenseTensor<i32> = [[3, 4], [5, 6]].into();
+    //     let c = crate::einsum!((a[i, i] + 3) + b[i, j] * 3 => [i]);
+    //     assert_eq!(c.shape(), &[2]);
+    //     // [[1*3, 1*4, 1*5], [2*3, 2*4, 2*5]] = [[3, 4, 5], [6, 8, 10]]
+    //     assert_eq!(c.as_slice(), &[29, 47]);
+    // }
 }
