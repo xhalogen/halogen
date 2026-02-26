@@ -1,19 +1,19 @@
 use proc_macro::TokenStream;
 
 mod analyze;
+mod ast;
 mod codegen;
 mod defv;
-mod folder;
 mod generator;
-mod indexer;
+mod indicer;
 mod parser;
-mod viewer;
 
 use analyze::analyze;
+use ast::*;
 use codegen::codegen;
-use indexer::*;
+use defv::*;
+use indicer::*;
 use parser::EinsumInput;
-use viewer::*;
 
 fn einsum_inner(tokens: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
     let input = syn::parse2::<EinsumInput>(tokens)?;

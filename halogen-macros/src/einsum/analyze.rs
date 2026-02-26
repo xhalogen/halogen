@@ -1,7 +1,7 @@
+use super::ast::{TensorValue, viewer::get_tensorvalues};
 use super::generator::get_size_map;
-use super::indexer::{TensorIndices, get_indices};
+use super::indicer::{TensorIndices, get_indices};
 use super::parser::EinsumInput;
-use super::viewer::{TensorValue, get_tensorvalues};
 use proc_macro2::Ident;
 use std::collections::HashMap;
 

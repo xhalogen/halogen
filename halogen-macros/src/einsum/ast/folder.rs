@@ -1,4 +1,4 @@
-use super::{TensorIndices, defv::*, is_tensorvalue};
+use super::super::*;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use std::collections::HashMap;
