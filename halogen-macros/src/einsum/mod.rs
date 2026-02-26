@@ -3,7 +3,6 @@ use proc_macro::TokenStream;
 mod analyze;
 mod ast;
 mod codegen;
-mod defv;
 mod generator;
 mod indicer;
 mod parser;
@@ -11,7 +10,7 @@ mod parser;
 use analyze::analyze;
 use ast::*;
 use codegen::codegen;
-use defv::*;
+use generator::*;
 use indicer::*;
 use parser::EinsumInput;
 

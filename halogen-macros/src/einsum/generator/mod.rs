@@ -1,14 +1,16 @@
-use super::{TensorIndices, TensorValue, defv::*};
+pub mod defv;
+pub mod size;
+pub mod vars;
+
+use super::{TensorIndices, TensorValue};
+pub use defv::*;
 use proc_macro2::Ident as Ident2;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
+pub use size::*;
 use std::collections::HashMap;
 use syn::{Error, Ident, Result};
-
-pub mod vars;
 pub use vars::*;
-pub mod size;
-pub use size::*;
 
 pub fn gen_einsum_loop(
     indices: &TensorIndices,
