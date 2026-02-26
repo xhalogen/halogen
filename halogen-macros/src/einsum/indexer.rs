@@ -1,4 +1,4 @@
-use crate::einsum::TensorValue;
+use super::TensorValue;
 use std::collections::HashSet;
 use syn::{Error, Ident, Result};
 

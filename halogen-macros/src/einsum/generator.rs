@@ -1,4 +1,4 @@
-use crate::einsum::{TensorIndices, TensorValue, defv::*};
+use super::{TensorIndices, TensorValue, defv::*};
 use proc_macro2::Ident as Ident2;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
