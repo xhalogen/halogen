@@ -33,6 +33,10 @@ impl<T> DenseTensor<T> {
 
 impl<T: Clone> Tensor for DenseTensor<T> {
     type Elem = T;
+    type ElemRet<'a>
+        = &'a T
+    where
+        Self: 'a;
 
     fn rank(&self) -> usize {
         self.shape.len()
