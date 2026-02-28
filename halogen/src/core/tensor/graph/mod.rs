@@ -1,5 +1,5 @@
 // use crate::core::tensor::{Tensor, TensorError};
-use std::{cell::RefCell, rc::Rc};
+// use std::{cell::RefCell, rc::Rc};
 
 #[derive(Clone, Copy)]
 pub enum DType {
@@ -11,65 +11,65 @@ pub enum DType {
     F64,
 }
 
-pub enum ConstData {
-    I32(Vec<i32>),
-    I64(Vec<i64>),
-    U32(Vec<u32>),
-    U64(Vec<u64>),
-    F32(Vec<f32>),
-    F64(Vec<f64>),
-}
+// pub enum ConstData {
+//     I32(Vec<i32>),
+//     I64(Vec<i64>),
+//     U32(Vec<u32>),
+//     U64(Vec<u64>),
+//     F32(Vec<f32>),
+//     F64(Vec<f64>),
+// }
 
-impl ConstData {
-    pub fn len(&self) -> usize {
-        match self {
-            ConstData::I32(v) => v.len(),
-            ConstData::I64(v) => v.len(),
-            ConstData::U32(v) => v.len(),
-            ConstData::U64(v) => v.len(),
-            ConstData::F32(v) => v.len(),
-            ConstData::F64(v) => v.len(),
-        }
-    }
-}
+// impl ConstData {
+//     pub fn len(&self) -> usize {
+//         match self {
+//             ConstData::I32(v) => v.len(),
+//             ConstData::I64(v) => v.len(),
+//             ConstData::U32(v) => v.len(),
+//             ConstData::U64(v) => v.len(),
+//             ConstData::F32(v) => v.len(),
+//             ConstData::F64(v) => v.len(),
+//         }
+//     }
+// }
 
-pub enum OpKind {
-    GET,
-}
+// pub enum OpKind {
+//     GET,
+// }
 
-pub struct TensorNodeAttr {
-    pub dtype: DType,
-    pub shape: Vec<usize>,
-}
+// pub struct TensorNodeAttr {
+//     pub dtype: DType,
+//     pub shape: Vec<usize>,
+// }
 
-pub enum GraphNode {
-    Input {
-        output: usize,
-    },
-    Const {
-        const_id: usize,
-        output: usize,
-    },
-    Operator {
-        op: OpKind,
-        inputs: Vec<usize>,
-        outputs: Vec<usize>,
-    },
-}
+// pub enum GraphNode {
+//     Input {
+//         output: usize,
+//     },
+//     Const {
+//         const_id: usize,
+//         output: usize,
+//     },
+//     Operator {
+//         op: OpKind,
+//         inputs: Vec<usize>,
+//         outputs: Vec<usize>,
+//     },
+// }
 
-pub struct Graph {
-    pub nodes: Vec<GraphNode>,
-    pub const_datas: Vec<ConstData>,
-    pub attrs: Vec<TensorNodeAttr>,
-    pub producers: Vec<(usize, usize)>,
-    pub outputs: Vec<usize>,
-}
+// pub struct Graph {
+//     pub nodes: Vec<GraphNode>,
+//     pub const_datas: Vec<ConstData>,
+//     pub attrs: Vec<TensorNodeAttr>,
+//     pub producers: Vec<(usize, usize)>,
+//     pub outputs: Vec<usize>,
+// }
 
-#[derive(Clone)]
-pub struct GraphTensor {
-    pub id: usize,
-    pub graph: Rc<RefCell<Graph>>,
-}
+// #[derive(Clone)]
+// pub struct GraphTensor {
+//     pub id: usize,
+//     pub graph: Rc<RefCell<Graph>>,
+// }
 
 // impl GraphTensor {
 //     fn push_const(&self, data: ConstData) -> usize {
