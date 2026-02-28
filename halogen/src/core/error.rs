@@ -14,4 +14,7 @@ pub enum TensorError {
 
     #[error("index out of bounds: idx={idx:?}, shape={shape:?}")]
     IndexOutOfBounds { idx: Vec<usize>, shape: Vec<usize> },
+
+    #[error("tmp msg from graph")]
+    GraphDropped,
 }
