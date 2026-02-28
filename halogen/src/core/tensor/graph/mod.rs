@@ -24,9 +24,8 @@ pub struct Edge {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum NodeKind {
-    Get,
-    Reshape,
-    Const { data: Vec<u8> },
+    Get { idx: Vec<usize> },
+    Reshape { shape: Vec<usize> },
 }
 
 pub struct Node {
@@ -77,8 +76,6 @@ impl Graph {
 pub struct GraphTensor {
     pub id: EdgeId,
     pub graph: Weak<RefCell<Graph>>,
-    pub dtype: TypeId,
-    pub shape: Vec<usize>,
 }
 
 #[allow(dead_code)]
@@ -87,63 +84,48 @@ impl GraphTensor {
         self.graph.upgrade().ok_or(TensorError::GraphDropped)
     }
 
+    fn dtype(&self) -> TypeId {
+        let graph = self.graph().unwrap();
+        graph.borrow().edges[self.id.0].kind.dtype
+    }
+
     fn rank(&self) -> usize {
         self.shape().len()
     }
 
-    fn shape(&self) -> &[usize] {
-        &self.shape
+    fn shape(&self) -> Vec<usize> {
+        let graph = self.graph().unwrap();
+        graph.borrow().edges[self.id.0].kind.shape.clone()
     }
 
     fn get(&self, idx: &[usize]) -> Result<Self, TensorError> {
         let graph_rc = self.graph()?;
         let mut graph = graph_rc.borrow_mut();
-        let idx_bytes: Vec<u8> = idx.iter().flat_map(|i| i.to_le_bytes()).collect();
-        let idx_id = graph.new_node(
-            NodeKind::Const { data: idx_bytes },
-            vec![],
-            vec![EdgeKind {
-                dtype: TypeId::of::<usize>(),
-                shape: vec![idx.len()],
-            }],
-        );
-        let idx_edge = graph.nodes[idx_id.0].outputs[0];
         let get_id = graph.new_node(
-            NodeKind::Get,
-            vec![self.id, idx_edge],
+            NodeKind::Get { idx: idx.to_vec() },
+            vec![self.id],
             vec![EdgeKind {
-                dtype: self.dtype,
-                shape: self.shape.clone(),
+                dtype: self.dtype(),
+                shape: vec![],
             }],
         );
         let get_edge = graph.nodes[get_id.0].outputs[0];
         Ok(GraphTensor {
             id: get_edge,
             graph: Weak::clone(&self.graph),
-            dtype: self.dtype,
-            shape: self.shape.clone(),
         })
     }
 
     fn reshape(&self, shape: &[usize]) -> Result<Self, TensorError> {
         let graph_rc = self.graph()?;
         let mut graph = graph_rc.borrow_mut();
-
-        let shape_bytes: Vec<u8> = shape.iter().flat_map(|i| i.to_le_bytes()).collect();
-        let shape_id = graph.new_node(
-            NodeKind::Const { data: shape_bytes },
-            vec![],
-            vec![EdgeKind {
-                dtype: TypeId::of::<usize>(),
-                shape: vec![shape.len()],
-            }],
-        );
-        let shape_edge = graph.nodes[shape_id.0].outputs[0];
         let reshape_id = graph.new_node(
-            NodeKind::Reshape,
-            vec![self.id, shape_edge],
+            NodeKind::Reshape {
+                shape: shape.to_vec(),
+            },
+            vec![self.id],
             vec![EdgeKind {
-                dtype: self.dtype,
+                dtype: self.dtype(),
                 shape: shape.to_vec(),
             }],
         );
@@ -151,8 +133,6 @@ impl GraphTensor {
         Ok(GraphTensor {
             id: reshape_edge,
             graph: Weak::clone(&self.graph),
-            dtype: self.dtype,
-            shape: shape.to_vec(),
         })
     }
 }
