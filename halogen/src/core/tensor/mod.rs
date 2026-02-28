@@ -1,4 +1,5 @@
 mod dense;
+mod graph;
 mod into;
 mod scalar;
 
@@ -22,4 +23,5 @@ pub trait Tensor {
 }
 
 pub use dense::*;
+pub use graph::*;
 pub use scalar::*;
