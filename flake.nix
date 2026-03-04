@@ -20,6 +20,7 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
+            pkg-config
             git
             direnv
             rustc
